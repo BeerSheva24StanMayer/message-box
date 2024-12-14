@@ -1,26 +1,33 @@
 package telran.producer.consumer;
 
-public class SimpleMessageBox implements MessageBox{
-private String message;
+public class SimpleMessageBox implements MessageBox {
+    private String message;
+
     @Override
-    synchronized public void put(String message) {
-        this.message = message;
-        notify();
+    synchronized public void put(String message) throws InterruptedException {
+        while (this.message != null) {
+            wait();
+        }
+        notifyAll();
     }
 
     @Override
     synchronized public String take() throws InterruptedException {
-        while(message == null) {
+        while (message == null) {
             wait();
         }
         String msg = message;
         message = null;
-        return msg; //may not be null
+        notifyAll();
+        return msg;
     }
 
     @Override
     synchronized public String poll() {
-        return message; //it may be null
+        if(message != null) {
+            message = null;
+            notifyAll();
+        }
+        return message;
     }
-
 }
